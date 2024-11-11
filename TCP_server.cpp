@@ -13,6 +13,7 @@ using namespace std;
 
 #define MYPORT "6379" 
 #define BACKLOG 10
+#define MAXDATASIZE 100
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -27,11 +28,12 @@ void *get_in_addr(struct sockaddr *sa)
 int main(int argv,char *argc[]){
     struct sockaddr_storage their_addr;
     socklen_t addr_size;
+    char buff[MAXDATASIZE];
     struct addrinfo hints,*res,*p;
     int sockfd,new_fd;
     int yes =1;
     char s[INET6_ADDRSTRLEN];
-    int rv;
+    int rv,num_bytes;
     //getaddrinfo()
 
     memset(&hints, 0, sizeof hints);
@@ -91,9 +93,16 @@ int main(int argv,char *argc[]){
     if(!fork()){
     close(sockfd);
     cout<<"server: got connection from "<<s<<"\n";
-    if (send(new_fd, "Hello, world!\n", 14, 0) == -1){
-        perror("send");
+    
+    if((num_bytes = recv(new_fd,buff,MAXDATASIZE-1,0))==-1){
+        cerr<<"recv";
     }
+    buff[num_bytes]='\0';
+    cout<<buff;
+    if (send(new_fd, "+Hello, world!\r\n", 16, 0) == -1){
+        cerr<<"send";
+    }
+
     close(new_fd);
     exit(0);
 
